@@ -1,0 +1,35 @@
+name: GitHub Pages Publish
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  adoc_build:
+    runs-on: ubuntu-latest
+    name: Asciidoctoring the docs to pretty HTML!
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get build container
+      id: adocbuild
+      uses: rhpds/asciidoctor-action@master
+      with:
+          program: "asciidoctor -D public/ --backend=html5 docs/*.adoc"
+
+    - name: Rename README.html to index.html
+      run: sudo mv public/README.html public/index.html
+
+    - name: Copy asset folder to public/ dir
+      run: sudo cp -r docs/assets/ public/
+
+    - name: Print execution time
+      run: echo "Time ${{ steps.adocbuild.outputs.time }}"
+
+    - name: Deploy docs to ghpages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: gh-pages
+        publish_dir: ./public/
